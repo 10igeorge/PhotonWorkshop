@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class NetworkPlayer:Photon.MonoBehaviour {
     public GameObject tankPrefab;
+    public GameObject explosionPrefab;
     private TankController currentTank;
 
     public void Awake() {
@@ -12,9 +13,8 @@ public class NetworkPlayer:Photon.MonoBehaviour {
             SceneManager.LoadScene("Menu");
             return;
         }
-        // Instantiate player's tank
-        GameObject tankGO = PhotonNetwork.Instantiate(tankPrefab.name, transform.position, Quaternion.identity, 0);
-        currentTank = tankGO.GetComponent<TankController>();
+        // Spawn Immediately
+        StartCoroutine(Spawn(0f));
     }
 
     public void Update() {
@@ -24,6 +24,27 @@ public class NetworkPlayer:Photon.MonoBehaviour {
             PhotonNetwork.LeaveRoom();
         }
     }
+
+    // ******************** Player State & RPCs ********************
+
+    [PunRPC]
+    void TankDestroyed(int playerID) {
+        if(photonView.ownerId == playerID) {
+            // We died! Respawn after 1 second
+            StartCoroutine(Spawn(1f));
+        }
+        // Either we, or someone else died. Either way, spawn an explosion
+
+    }
+
+    private IEnumerator Spawn(float delay) {
+        yield return new WaitForSeconds(delay);
+        // Instantiate player's tank
+        GameObject tankGO = PhotonNetwork.Instantiate(tankPrefab.name, transform.position, Quaternion.identity, 0);
+        currentTank = tankGO.GetComponent<TankController>();
+    }
+
+    // ******************** Network State ********************
 
     public void OnLeftRoom() {
         // Left room? Back to main menu
