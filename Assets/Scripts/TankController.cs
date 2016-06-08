@@ -20,12 +20,11 @@ public class TankController : Photon.MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        //if (!photonView.isMine) {
-        //    transform.position = Vector3.Lerp(transform.position, this.playerPosActual, Time.deltaTime * 5);
-        //    transform.rotation = Quaternion.Lerp(transform.rotation, this.playerRotActual, Time.deltaTime * 5);
-        //}
-        //else { GetInput(); }
-        GetInput();
+        if (!photonView.isMine) {
+            transform.position = Vector3.Lerp(transform.position, this.playerPosActual, Time.deltaTime * 5);
+            transform.rotation = Quaternion.Lerp(transform.rotation, this.playerRotActual, Time.deltaTime * 5);
+        }
+        else { GetInput(); }
 	}
 
     void GetInput() {
