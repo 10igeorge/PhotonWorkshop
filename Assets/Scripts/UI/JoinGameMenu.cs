@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using Photon;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class JoinGameMenu:PunBehaviour {
@@ -37,6 +38,14 @@ public class JoinGameMenu:PunBehaviour {
 
     public override void OnJoinedRoom() {
         SetStatus("Joined room successfully", Color.green);
+        // Change scene
+        SceneManager.LoadScene("YoriTest");
+    }
+
+    public override void OnPhotonCreateRoomFailed(object[] codeAndMsg) {
+        SetStatus("Creating room failed, try again", Color.red);
+        // Creating room failed, re-enable join button
+        joinGameButton.interactable = true;
     }
 
     // ******************** UI Interactions ********************
