@@ -39,7 +39,7 @@ public class TankController:LerpRigidbody {
         // Shoot a bullet
         GameObject bulletGo = PhotonNetwork.Instantiate(bulletPrefab.name, transform.position + transform.up * 0.5f, transform.rotation, 0);
         BulletController bc = bulletGo.GetComponent<BulletController>();
-        bc.Launch(photonView.ownerId, col);
+        bc.photonView.RPC("Launch", PhotonTargets.All, photonView.ownerId);
     }
 
     void Hit(int sourcePlayerId) {
