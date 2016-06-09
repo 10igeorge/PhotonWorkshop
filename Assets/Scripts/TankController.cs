@@ -56,8 +56,8 @@ public class TankController : Photon.MonoBehaviour {
             rb.MoveRotation(newRot.eulerAngles.z);
         }
         else {
-            rb.MovePosition(lagDistance > snapDistance ? (Vector3)newPos : Vector3.Lerp(transform.position, newPos, Time.deltaTime * 5));
-            rb.MoveRotation(lagRotation > snapAngle ? newRot.eulerAngles.z : Quaternion.Lerp(transform.rotation, newRot, Time.deltaTime * 5).eulerAngles.z);
+            rb.MovePosition(lagDistance > snapDistance ? (Vector3)newPos : Vector3.Lerp(transform.position, newPos, Time.deltaTime * 20));
+            rb.MoveRotation(lagRotation > snapAngle ? newRot.eulerAngles.z : Quaternion.Lerp(transform.rotation, newRot, Time.deltaTime * 20).eulerAngles.z);
         }
     }
 
