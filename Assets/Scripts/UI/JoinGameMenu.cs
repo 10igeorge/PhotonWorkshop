@@ -39,7 +39,7 @@ public class JoinGameMenu:PunBehaviour {
     public override void OnJoinedRoom() {
         SetStatus("Joined room successfully", Color.green);
         // Change scene
-        PhotonNetwork.LoadLevel("YoriTest");
+        PhotonNetwork.LoadLevel("Game");
     }
 
     public override void OnPhotonCreateRoomFailed(object[] codeAndMsg) {
