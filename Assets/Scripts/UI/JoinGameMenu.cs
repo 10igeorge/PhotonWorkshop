@@ -11,7 +11,7 @@ public class JoinGameMenu:PunBehaviour {
 
     public void Start() {
 #if UNITY_EDITOR
-        PhotonNetwork.logLevel = PhotonLogLevel.Full;
+        PhotonNetwork.logLevel = PhotonLogLevel.Informational;
 #endif
         // Connect
         PhotonNetwork.ConnectUsingSettings("0.1");
@@ -51,7 +51,6 @@ public class JoinGameMenu:PunBehaviour {
     // ******************** UI Interactions ********************
 
     public void ClickJoin() {
-        Debug.Log("Clicked join!");
         // Prevent double click
         joinGameButton.interactable = false;
         // Try joining a room

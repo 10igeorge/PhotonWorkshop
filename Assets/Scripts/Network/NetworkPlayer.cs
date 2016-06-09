@@ -4,7 +4,6 @@ using UnityEngine.SceneManagement;
 
 public class NetworkPlayer:Photon.MonoBehaviour {
     public GameObject tankPrefab;
-    public GameObject explosionPrefab;
     private TankController currentTank;
 
     public void Awake() {
@@ -27,14 +26,8 @@ public class NetworkPlayer:Photon.MonoBehaviour {
 
     // ******************** Player State & RPCs ********************
 
-    [PunRPC]
-    void TankDestroyed(int playerID) {
-        if(photonView.ownerId == playerID) {
-            // We died! Respawn after 1 second
-            StartCoroutine(Spawn(1f));
-        }
-        // Either we, or someone else died. Either way, spawn an explosion
-
+    public void TankWasDestroyed() {
+        StartCoroutine(Spawn(1f)); // Respawn after 1 second
     }
 
     private IEnumerator Spawn(float delay) {
@@ -42,6 +35,7 @@ public class NetworkPlayer:Photon.MonoBehaviour {
         // Instantiate player's tank
         GameObject tankGO = PhotonNetwork.Instantiate(tankPrefab.name, transform.position, Quaternion.identity, 0);
         currentTank = tankGO.GetComponent<TankController>();
+        currentTank.networkPlayer = this;
     }
 
     // ******************** Network State ********************

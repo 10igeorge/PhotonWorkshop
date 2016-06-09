@@ -44,7 +44,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children: []
   m_Father: {fileID: 470304}
   m_RootOrder: 0
@@ -57,7 +56,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 407308}
   m_Father: {fileID: 0}
@@ -129,10 +127,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe05754a42eca1b49a661471e39b8e4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  explosionPrefab: {fileID: 108940, guid: c1ef80b8cd712b6479e2333467c16f60, type: 2}
   moveSpeed: 5
   rotSpeed: 180
   snapDistance: 3
   snapAngle: 90
+  networkPlayer: {fileID: 0}
 --- !u!212 &21213954
 SpriteRenderer:
   m_ObjectHideFlags: 1
