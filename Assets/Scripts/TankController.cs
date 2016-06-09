@@ -30,7 +30,7 @@ public class TankController : Photon.MonoBehaviour {
         if (!photonView.isMine) {
             //transform.position = Vector3.Lerp(transform.position, this.playerPosActual, Time.deltaTime * 5);
             //transform.rotation = Quaternion.Lerp(transform.rotation, this.playerRotActual, Time.deltaTime * 5);
-            Move((Vector2)playerPosActual, playerRotActual.eulerAngles.z);
+            Move((Vector2)playerPosActual, playerRotActual);
         }
         else { GetInput(); }
 	}
@@ -38,7 +38,7 @@ public class TankController : Photon.MonoBehaviour {
     void GetInput() {
 
         Vector2 newPos = (Vector2)transform.position + (Vector2)transform.up * moveSpeed * Time.deltaTime * Input.GetAxis("Vertical");
-        float newRot = transform.rotation.eulerAngles.z + (rotSpeed * -Input.GetAxisRaw("Horizontal") * Time.deltaTime);
+        Quaternion newRot = transform.rotation * Quaternion.Euler(0f, 0f, rotSpeed * -Input.GetAxisRaw("Horizontal") * Time.deltaTime);
 
         Move(newPos, newRot);
 
@@ -47,28 +47,23 @@ public class TankController : Photon.MonoBehaviour {
         }
     }
 
-    void Move(Vector2 newPos, float newRot) {
+    void Move(Vector2 newPos, Quaternion newRot) {
         float lagDistance = Vector2.Distance(newPos, transform.position);
-        float lagRotation = Mathf.Abs(((newRot + 360) % 360) - transform.rotation.eulerAngles.z);
+        float lagRotation = Quaternion.Angle(newRot, transform.rotation);
 
         if (photonView.isMine) {
             rb.MovePosition(newPos);
-            rb.MoveRotation(newRot);
+            rb.MoveRotation(newRot.eulerAngles.z);
         }
         else {
-            transform.position = lagDistance > snapDistance ? 
-                (Vector3)newPos :
-                Vector3.Lerp(transform.position, this.playerPosActual, Time.deltaTime * 5);
-
-            transform.rotation = lagRotation > snapAngle ? 
-                Quaternion.Euler(0, 0, newRot) : 
-                Quaternion.Lerp(transform.rotation, this.playerRotActual, Time.deltaTime * 5);
+            rb.MovePosition(lagDistance > snapDistance ? (Vector3)newPos : Vector3.Lerp(transform.position, newPos, Time.deltaTime * 5));
+            rb.MoveRotation(lagRotation > snapAngle ? newRot.eulerAngles.z : Quaternion.Lerp(transform.rotation, newRot, Time.deltaTime * 5).eulerAngles.z);
         }
     }
 
     void Die() {
         // RPC that we were destroyed
-        PhotonNetwork.RPC(photonView, "TankDestroyed", PhotonTargets.All, false, photonView.ownerId, transform.position);
+        PhotonNetwork.RPC(photonView, "TankDestroyed", PhotonTargets.All, false, photonView.ownerId);
     }
 
     void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
@@ -88,7 +83,7 @@ public class TankController : Photon.MonoBehaviour {
     // ******************** RPC Calls ********************
 
     [PunRPC]
-    void TankDestroyed(int playerID, Vector3 pos) {
+    void TankDestroyed(int playerID) {
         Debug.Log("TankDestroyed - " + playerID);
         if(photonView.isMine) {
             // We died! Destroy ourselves and tell our network player
@@ -96,6 +91,6 @@ public class TankController : Photon.MonoBehaviour {
             networkPlayer.TankWasDestroyed();
         }
         // Either we, or someone else died. Either way, spawn an explosion at its position
-        Instantiate(explosionPrefab, pos, Quaternion.identity);
+        Instantiate(explosionPrefab, transform.position, Quaternion.identity);
     }
 }

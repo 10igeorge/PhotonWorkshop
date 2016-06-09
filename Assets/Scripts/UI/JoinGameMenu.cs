@@ -11,14 +11,14 @@ public class JoinGameMenu:PunBehaviour {
 
     public void Start() {
 #if UNITY_EDITOR
-        PhotonNetwork.logLevel = PhotonLogLevel.Informational;
+        PhotonNetwork.logLevel = PhotonLogLevel.ErrorsOnly;
 #endif
-        // Connect
-        PhotonNetwork.ConnectUsingSettings("0.1");
         // Status
         SetStatus("Connecting...", Color.yellow);
         // Start with join game button disabled
         joinGameButton.interactable = false;
+        // Connect
+        PhotonNetwork.ConnectUsingSettings("0.1");
     }
 
     // ******************** Network State ********************
@@ -53,10 +53,10 @@ public class JoinGameMenu:PunBehaviour {
     public void ClickJoin() {
         // Prevent double click
         joinGameButton.interactable = false;
-        // Try joining a room
-        PhotonNetwork.JoinRandomRoom();
         // Status
         SetStatus("Joining random room", Color.yellow);
+        // Try joining a room
+        PhotonNetwork.JoinRandomRoom();
     }
 
     private void SetStatus(string status, Color color) {

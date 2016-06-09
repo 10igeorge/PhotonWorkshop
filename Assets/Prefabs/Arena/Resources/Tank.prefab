@@ -130,8 +130,8 @@ MonoBehaviour:
   explosionPrefab: {fileID: 108940, guid: c1ef80b8cd712b6479e2333467c16f60, type: 2}
   moveSpeed: 5
   rotSpeed: 180
-  snapDistance: 3
-  snapAngle: 90
+  snapDistance: 1
+  snapAngle: 30
   networkPlayer: {fileID: 0}
 --- !u!212 &21213954
 SpriteRenderer:
