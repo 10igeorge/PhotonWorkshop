@@ -85,7 +85,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 169052}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 83150236a0e1bbb4e8233552b599586d, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_Offset: {x: 0, y: 0}
@@ -131,6 +131,7 @@ MonoBehaviour:
   bulletPrefab: {fileID: 133900, guid: bc433719613889d42acd91291dcf1d8d, type: 2}
   moveSpeed: 5
   rotSpeed: 180
+  bulletFireDelay: 0.5
   networkPlayer: {fileID: 0}
 --- !u!212 &21213954
 SpriteRenderer:

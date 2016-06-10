@@ -7,21 +7,34 @@ public class TankController:LerpRigidbody {
 
     [SerializeField] private float moveSpeed;
     [SerializeField] private float rotSpeed;
+    [SerializeField] private float bulletFireDelay;
 
-    // Set by Spawn in NetworkPlayer
-    [HideInInspector] public NetworkPlayer networkPlayer;
+    // Firing
+    private float bulletFireTimer = 0f;
+
+    [PunRPC]
+    public void SetColor(int colorIndex) {
+        SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
+        sp.color = NetworkGameManager.I.playerColors[colorIndex];
+    }
 
     public override void Update() {
         // Movement
         base.Update();
         // Other Input
         if(photonView.isMine) {
+            // Firing timer
+            if(bulletFireTimer > 0f) {
+                bulletFireTimer -= Time.deltaTime;
+            }
+            // Input
             GetInput();
         }
     }
 
     private void GetInput() {
-        if(Input.GetKeyDown(KeyCode.Space)) {
+        if(Input.GetKey(KeyCode.Space) && bulletFireTimer <= 0f) {
+            bulletFireTimer = bulletFireDelay;
             Shoot();
         }
         if(Input.GetKeyDown(KeyCode.K)) {
@@ -32,7 +45,9 @@ public class TankController:LerpRigidbody {
     protected override void SelfMovement() {
         Vector2 newPos = (Vector2)transform.position + (Vector2)transform.up * moveSpeed * Time.deltaTime * Input.GetAxis("Vertical");
         Quaternion newRot = transform.rotation * Quaternion.Euler(0f, 0f, rotSpeed * -Input.GetAxisRaw("Horizontal") * Time.deltaTime);
-        Move(newPos, newRot);
+        if(NetworkGameManager.gameBounds.Contains(newPos)) {
+            Move(newPos, newRot);
+        }
     }
 
     void Shoot() {
@@ -54,11 +69,10 @@ public class TankController:LerpRigidbody {
     // ******************** RPC Calls ********************
 
     [PunRPC] void TankDestroyed(int playerID) {
-        Debug.Log("TankDestroyed - " + playerID);
         if(photonView.isMine) {
-            // We died! Destroy ourselves and tell our network player
+            // We died! Destroy ourselves and tell the game manager
             PhotonNetwork.Destroy(gameObject);
-            networkPlayer.TankWasDestroyed();
+            NetworkGameManager.I.TankWasDestroyed();
         }
         // Either we, or someone else died. Either way, spawn an explosion at its position
         Instantiate(explosionPrefab, transform.position, Quaternion.identity);

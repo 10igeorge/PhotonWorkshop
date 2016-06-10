@@ -8,21 +8,23 @@ public class BulletController:Photon.MonoBehaviour {
     private float moveSpeed;
 
     [HideInInspector]
-    public int ownerId;
+    public int ownerId = -1;
 
-    private Collider2D col;
     private Rigidbody2D rb;
-    private float lifeTime;
 
     public void Awake() {
-        col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
+        if(ownerId == -1) {
+            // If we don't have an owner ID, that means we were spawned mid-flight (a player joined while we were flying)
+            // Since we never launched our position is probably random and meaningless, so just move us off the field entirely
+            transform.position = Vector3.right * 100f;
+        }
     }
 
     public void Update() {
         if(photonView.isMine) {
-            lifeTime += Time.deltaTime;
-            if(lifeTime > 2f) {
+            // Outside the screen? Destoy ourselves
+            if(!NetworkGameManager.gameBounds.Contains(transform.position)) {
                 PhotonNetwork.Destroy(gameObject);
             }
         }
