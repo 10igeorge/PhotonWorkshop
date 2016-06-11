@@ -8,13 +8,18 @@ public class BulletController:Photon.MonoBehaviour {
     private float moveSpeed;
 
     [HideInInspector]
-    public int ownerId = -1;
+    public int ownerPlayerIndex = -1;
 
+    public Collider2D col;
     private Rigidbody2D rb;
 
     public void Awake() {
+        col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
-        if(ownerId == -1) {
+    }
+
+    public void Start() {
+        if(ownerPlayerIndex == -1) {
             // If we don't have an owner ID, that means we were spawned mid-flight (a player joined while we were flying)
             // Since we never launched our position is probably random and meaningless, so just move us off the field entirely
             transform.position = Vector3.right * 100f;
@@ -31,18 +36,16 @@ public class BulletController:Photon.MonoBehaviour {
     }
 
     [PunRPC]
-    public void Launch(int id) {
-        ownerId = id;
+    public void Launch(int ownerIndex) {
+        ownerPlayerIndex = ownerIndex;
         rb.velocity = transform.up * moveSpeed;
     }
 
     public void OnTriggerEnter2D(Collider2D other) {
         if(photonView.isMine) {
             if(other.CompareTag("Player")) {
-                if(other.GetComponent<PhotonView>().ownerId != ownerId) {
-                    other.SendMessage("Hit", ownerId);
-                    PhotonNetwork.Destroy(gameObject);
-                }
+                other.SendMessage("Hit", ownerPlayerIndex);
+                PhotonNetwork.Destroy(gameObject);
             } else {
                 PhotonNetwork.Destroy(gameObject);
             }

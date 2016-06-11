@@ -13,7 +13,7 @@ public class NetworkGameManager:PunBehaviour {
     private List<Color> availableColors;
 
     // Just the current player
-    public int playerColorIndex;
+    public int playerIndex;
     public GameObject tankPrefab;
     private TankController currentTank;
 
@@ -38,7 +38,7 @@ public class NetworkGameManager:PunBehaviour {
 
         if(PhotonNetwork.isMasterClient) {
             // Join the game using the next available color
-            JoinGame(NextColor());
+            JoinGame(NextPlayerIndex());
         }
         // If we're not the master, wait for the master to recognize us and assign us a color
     }
@@ -53,25 +53,26 @@ public class NetworkGameManager:PunBehaviour {
 
     // ******************** Player Join/Leave ********************
 
-    private void ReleaseColor(PhotonPlayer p) {
-        int colorIndex = (int)p.customProperties["color"];
-        playerColors.Add(playerColors[colorIndex]);
+    private void ReleasePlayerIndex(int releasedPlayerIndex) {
+        playerColors.Add(playerColors[releasedPlayerIndex]);
     }
 
-    private int NextColor() {
+    private int NextPlayerIndex() {
         Color c = availableColors[0];
         availableColors.RemoveAt(0);
         return playerColors.IndexOf(c);
     }
 
     [PunRPC]
-    public void JoinGame(int colorIndex) {
+    public void JoinGame(int newPlayerIndex) {
         // Set player color and store in properties
-        playerColorIndex = colorIndex;
+        playerIndex = newPlayerIndex;
         Hashtable playerProperties = new Hashtable {
-            { "color", colorIndex }
+            { "playerIndex", newPlayerIndex }
         };
         PhotonNetwork.player.SetCustomProperties(playerProperties);
+        // Init our score
+        PlayerUI.I.photonView.RPC("UpdatePlayerScore", PhotonTargets.All, newPlayerIndex, 0);
         // Spawn Immediately
         StartCoroutine(Spawn(0f));
     }
@@ -88,22 +89,28 @@ public class NetworkGameManager:PunBehaviour {
         GameObject tankGO = PhotonNetwork.Instantiate(tankPrefab.name, Random.insideUnitCircle * 10f, Quaternion.identity, 0);
         currentTank = tankGO.GetComponent<TankController>();
         // Set color on the tank (and on all versions of it on other players' screens)
-        currentTank.photonView.RPC("SetColor", PhotonTargets.AllBuffered, playerColorIndex);
+        currentTank.photonView.RPC("SetColor", PhotonTargets.AllBuffered, playerIndex);
     }
 
     // ******************** Network State ********************
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer) {
         if(PhotonNetwork.isMasterClient) {
+            int newPlayerIndex = NextPlayerIndex();
             // Assign the player a color and tell them to join
-            photonView.RPC("JoinGame", newPlayer, NextColor());
+            photonView.RPC("JoinGame", newPlayer, newPlayerIndex);
+            // Send them all current scores
+            PlayerUI.I.SendAllScoresToNewPlayer(newPlayer);
         }
     }
 
     public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer) {
         if(PhotonNetwork.isMasterClient) {
+            int leavingPlayerIndex = (int)otherPlayer.customProperties["playerIndex"];
             // Release that player's color
-            ReleaseColor(otherPlayer);
+            ReleasePlayerIndex(leavingPlayerIndex);
+            // Clear their score
+            PlayerUI.I.PlayerLeft(leavingPlayerIndex);
         }
     }
 

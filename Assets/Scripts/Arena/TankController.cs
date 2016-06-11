@@ -12,10 +12,9 @@ public class TankController:LerpRigidbody {
     // Firing
     private float bulletFireTimer = 0f;
 
-    [PunRPC]
-    public void SetColor(int colorIndex) {
+    [PunRPC] public void SetColor(int playerIndex) {
         SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
-        sp.color = NetworkGameManager.I.playerColors[colorIndex];
+        sp.color = NetworkGameManager.I.playerColors[playerIndex];
     }
 
     public override void Update() {
@@ -38,7 +37,7 @@ public class TankController:LerpRigidbody {
             Shoot();
         }
         if(Input.GetKeyDown(KeyCode.K)) {
-            Die();
+            Die(NetworkGameManager.I.playerIndex);
         }
     }
 
@@ -54,25 +53,28 @@ public class TankController:LerpRigidbody {
         // Shoot a bullet
         GameObject bulletGo = PhotonNetwork.Instantiate(bulletPrefab.name, transform.position + transform.up * 0.5f, transform.rotation, 0);
         BulletController bc = bulletGo.GetComponent<BulletController>();
-        bc.photonView.RPC("Launch", PhotonTargets.All, photonView.ownerId);
+        Physics2D.IgnoreCollision(bc.col, col);
+        bc.photonView.RPC("Launch", PhotonTargets.All, NetworkGameManager.I.playerIndex);
     }
 
-    void Hit(int sourcePlayerId) {
-        Die();
+    void Hit(int sourcePlayerIndex) {
+        Die(sourcePlayerIndex);
     }
 
-    void Die() {
+    void Die(int sourcePlayerIndex) {
         // RPC that we were destroyed
-        PhotonNetwork.RPC(photonView, "TankDestroyed", PhotonTargets.All, false, photonView.ownerId);
+        PhotonNetwork.RPC(photonView, "TankDestroyed", PhotonTargets.All, false, sourcePlayerIndex);
     }
 
     // ******************** RPC Calls ********************
 
-    [PunRPC] void TankDestroyed(int playerID) {
+    [PunRPC] void TankDestroyed(int sourcePlayerIndex) {
         if(photonView.isMine) {
             // We died! Destroy ourselves and tell the game manager
             PhotonNetwork.Destroy(gameObject);
             NetworkGameManager.I.TankWasDestroyed();
+            // Tell everyone else that the person who killed us scored a point
+            PlayerUI.I.PlayerScored(sourcePlayerIndex);
         }
         // Either we, or someone else died. Either way, spawn an explosion at its position
         Instantiate(explosionPrefab, transform.position, Quaternion.identity);

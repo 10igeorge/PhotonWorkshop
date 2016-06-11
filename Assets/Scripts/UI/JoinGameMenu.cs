@@ -3,6 +3,7 @@ using System.Collections;
 using Photon;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class JoinGameMenu:PunBehaviour {
     public Button joinGameButton;

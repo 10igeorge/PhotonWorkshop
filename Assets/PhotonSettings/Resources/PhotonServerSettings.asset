@@ -24,14 +24,17 @@ MonoBehaviour:
   - Chat
   - DestroyRpc
   - InstantiateRpc
+  - JoinGame
   - Launch
   - OnAwakeRPC
   - PickupItemInit
+  - PlayerLeft
+  - PlayerScored
   - PunPickup
   - PunPickupSimple
   - PunRespawn
   - RequestForPickupTimes
-  - TankDestroyed
-  - JoinGame
   - SetColor
+  - TankDestroyed
+  - UpdatePlayerScore
   DisableAutoOpenWizard: 1
