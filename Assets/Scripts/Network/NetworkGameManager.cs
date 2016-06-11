@@ -18,12 +18,6 @@ public class NetworkGameManager:PunBehaviour {
     private TankController currentTank;
 
     public void Awake() {
-        // Started from the wrong scene? Jump back to menu
-        if(!PhotonNetwork.connected) {
-            SceneManager.LoadScene("Menu");
-            return;
-        }
-
         I = this;
         // Calculate camera/game bounds
         Camera cam = Camera.main;
@@ -36,18 +30,19 @@ public class NetworkGameManager:PunBehaviour {
         // Store available colors
         availableColors = new List<Color>(playerColors);
 
-        if(PhotonNetwork.isMasterClient) {
-            // Join the game using the next available color
-            JoinGame(NextPlayerIndex());
-        }
-        // If we're not the master, wait for the master to recognize us and assign us a color
+        // Join the game using the next available color
+        JoinGame(NextPlayerIndex());
     }
 
     public void Update() {
         // Use escape to quit
         if(Input.GetKeyDown(KeyCode.Escape)) {
-            // When we leave, all our objects will be automatically destroyed
-            PhotonNetwork.LeaveRoom();
+            // Clear our score
+            PlayerUI.I.PlayerLeft(playerIndex);
+            // Release our player color
+            ReleasePlayerIndex(playerIndex);
+            // Leave the game
+            SceneManager.LoadScene("Menu");
         }
     }
 
@@ -63,16 +58,11 @@ public class NetworkGameManager:PunBehaviour {
         return playerColors.IndexOf(c);
     }
 
-    [PunRPC]
     public void JoinGame(int newPlayerIndex) {
         // Set player color and store in properties
         playerIndex = newPlayerIndex;
-        Hashtable playerProperties = new Hashtable {
-            { "playerIndex", newPlayerIndex }
-        };
-        PhotonNetwork.player.SetCustomProperties(playerProperties);
         // Init our score
-        PlayerUI.I.photonView.RPC("UpdatePlayerScore", PhotonTargets.All, newPlayerIndex, 0);
+        PlayerUI.I.UpdatePlayerScore(newPlayerIndex, 0);
         // Spawn Immediately
         StartCoroutine(Spawn(0f));
     }
@@ -86,47 +76,9 @@ public class NetworkGameManager:PunBehaviour {
     private IEnumerator Spawn(float delay) {
         yield return new WaitForSeconds(delay);
         // Instantiate player's tank
-        GameObject tankGO = PhotonNetwork.Instantiate(tankPrefab.name, Random.insideUnitCircle * 10f, Quaternion.identity, 0);
+        GameObject tankGO = (GameObject)Instantiate(tankPrefab, Random.insideUnitCircle * 10f, Quaternion.identity);
         currentTank = tankGO.GetComponent<TankController>();
-        // Set color on the tank (and on all versions of it on other players' screens)
-        currentTank.photonView.RPC("SetColor", PhotonTargets.AllBuffered, playerIndex);
-    }
-
-    // ******************** Network State ********************
-
-    public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer) {
-        if(PhotonNetwork.isMasterClient) {
-            int newPlayerIndex = NextPlayerIndex();
-            // Assign the player a color and tell them to join
-            photonView.RPC("JoinGame", newPlayer, newPlayerIndex);
-            // Send them all current scores
-            PlayerUI.I.SendAllScoresToNewPlayer(newPlayer);
-        }
-    }
-
-    public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer) {
-        if(PhotonNetwork.isMasterClient) {
-            int leavingPlayerIndex = (int)otherPlayer.customProperties["playerIndex"];
-            // Release that player's color
-            ReleasePlayerIndex(leavingPlayerIndex);
-            // Clear their score
-            PlayerUI.I.PlayerLeft(leavingPlayerIndex);
-        }
-    }
-
-    public override void OnLeftRoom() {
-        // Left room? Back to main menu
-        SceneManager.LoadScene("Menu");
-    }
-
-    public override void OnDisconnectedFromPhoton() {
-        // Disconnected? Back to main menu
-        SceneManager.LoadScene("Menu");
-    }
-
-    public override void OnFailedToConnectToPhoton(DisconnectCause cause) {
-        // Failed to connect? Back to main menu
-        SceneManager.LoadScene("Menu");
+        currentTank.SetColor(playerIndex);
     }
 
     public void OnDestroy() {

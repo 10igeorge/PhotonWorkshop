@@ -37,4 +37,10 @@ MonoBehaviour:
   - SetColor
   - TankDestroyed
   - UpdatePlayerScore
+  - ColorRpc
+  - DoJump
+  - Flash
+  - Marco
+  - Polo
+  - TaggedPlayer
   DisableAutoOpenWizard: 1
